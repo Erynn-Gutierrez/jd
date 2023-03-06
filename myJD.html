@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Jade Delight</title>
+<style>
+p.userInfo.address {
+  display:none;
+}
+p .userInfo {
+  margin-bottom: 10px;
+}
+
+p>label {
+  display: inline-block;
+  width: 150px;
+  text-align: right;
+}
+
+</style>
+</head>
+
+<body>
+<script>
+
+function MenuItem(name, cost)
+{
+	this.name = name;
+	this.cost=cost;
+}
+
+menuItems = new Array(
+	new MenuItem("Chicken Chop Suey", 5.5),
+	new MenuItem("Sweet and Sour Pork", 7.25),
+	new MenuItem("Shrimp Lo Mein", 6.80),
+	new MenuItem("Moo Shi Chicken", 9.50),
+	new MenuItem("Fried Rice", 3.25)
+);
+
+function makeSelect(name, minRange, maxRange)
+{
+	var t= "";
+	t = "<select name='" + name + "' size='1'>";
+	for (j=minRange; j<=maxRange; j++)
+	   t += "<option>" + j + "</option>";
+	t+= "</select>"; 
+	return t;
+}
+
+function td(content, className="")
+{
+	return "<td class = '" + className + "'>" + content + "</td>";
+}
+	
+</script>
+
+<h1>Jade Delight</h1>
+<form>
+
+<p class="userInfo"><label>First Name:</label> <input type="text"  name='fname' /></p>
+<p class="userInfo"><label>Last Name*:</label>  <input type="text"  name='lname' /></p>
+<p class="userInfo address"><label>Street*:</label> <input type="text" name='street' /></p>
+<p class="userInfo address"><label>City*:</label> <input type="text" name='city' /></p>
+<p class="userInfo"><label>Phone*:</label> <input type="text"  name='phone' /></p>
+<p> 
+	<input type="radio"  name="p_or_d" value = "pickup" checked="checked"/>Pickup  
+	<input type="radio"  name='p_or_d' value = 'delivery'/>
+	Delivery
+</p>
+<table border="0" cellpadding="3">
+  <tr>
+    <th>Select Item</th>
+    <th>Item Name</th>
+    <th>Cost Each</th>
+    <th>Total Cost</th>
+  </tr>
+<script>
+
+  var s = "";
+  for (i=0; i< menuItems.length; i++)
+  {
+	  s += "<tr>";
+	  s += td(makeSelect("quan" + i, 0, 10),"selectQuantity");
+	  s += td(menuItems[i].name, "itemName");
+	  s += td("$" +menuItems[i].cost.toFixed(2), "cost");
+	  s += td("$<input type='text' name='cost'/>", "totalCost");
+	  s+= "</tr>";
+  }
+  document.writeln(s);
+</script>
+</table>
+<p class="subtotal totalSection"><label>Subtotal</label>: 
+  $ <input type="text"  name='subtotal' id="subtotal" />
+</p>
+<p class="tax totalSection"><label>Mass tax 6.25%:</label>
+ $ <input type="text"  name='tax' id="tax" />
+</p>
+<p class="total totalSection"><label>Total:</label> $ <input type="text" name='total' id="total" />
+</p>
+
+<input type = "button" value = "Submit Order" />
+
+<!-- MY SCRIPT STARTS HERE -->
+<script>
+
+// create an array with an initial length equal to the number of menu items
+var quans = new Array(menuItems.length);
+
+// add event listeners to all dropdowns
+for (i = 0; i < menuItems.length; i++) {
+  var dropdownList = document.querySelector("select[name='quan" + i + "']");
+  dropdownList.addEventListener('change', updateQuans);
+}
+
+var purchasedItems = [];
+
+function updateQuans() {
+  // loop through all dropdowns and update the corresponding index in the quans array
+  for (i = 0; i < menuItems.length; i++) {
+    var dropdownList = document.querySelector("select[name='quan" + i + "']");
+    quans[i] = dropdownList.selectedIndex;
+  }
+  numChopSuey = quans[0];
+  numPork = quans[1];
+  numLoMein = quans[2];
+  numMooShi = quans[3];
+  numRice = quans[4];
+
+  var purchasedItems = [
+  { name: "Chicken Chop Suey", quantity: numChopSuey },
+  { name: "Pork Fried Rice", quantity: numPork },
+  { name: "Lo Mein", quantity: numLoMein },
+  { name: "Moo Shu Pork", quantity: numMooShi },
+  { name: "Steamed Rice", quantity: numRice }
+];
+
+  calculateSub();
+}
+
+
+function calculateSub() {
+  subChopSuey = numChopSuey * menuItems[0].cost;
+  subPork     = numPork     * menuItems[1].cost;
+  subLoMein   = numLoMein   * menuItems[2].cost;
+  subMooShi   = numMooShi   * menuItems[3].cost;
+  subRice     = numRice     * menuItems[4].cost;
+
+  subItem = document.getElementsByClassName("totalCost");
+
+  subItem[0].querySelector("input").value = subChopSuey.toFixed(2);
+  subItem[1].querySelector("input").value = subPork.toFixed(2);
+  subItem[2].querySelector("input").value = subLoMein.toFixed(2);
+  subItem[3].querySelector("input").value = subMooShi.toFixed(2);
+  subItem[4].querySelector("input").value = subRice.toFixed(2);
+
+  subtotal = subChopSuey + subPork + subLoMein + subMooShi + subRice;
+  document.getElementById("subtotal").value = subtotal.toFixed(2);
+
+  tax = subtotal * .0625; 
+  document.getElementById("tax").value = tax.toFixed(2);
+
+  total = subtotal + tax;
+  document.getElementById("total").value = total.toFixed(2);
+}
+
+
+  deliverTo = document.querySelector("input[value='delivery']");
+  pickUp = document.querySelector("input[value='pickup']");
+  street = document.getElementsByClassName("userInfo address")[0];
+  city = document.getElementsByClassName("userInfo address")[1];
+
+  orderType = "";
+
+  deliverTo.addEventListener("click", () => {
+  if (deliverTo.checked) {
+    street.style.display = "block";
+    city.style.display = "block";
+    return orderType = "delivery";
+  } else {
+    return orderType = "pickup";
+  }
+})
+
+
+submitButton = document.querySelector("input[value='Submit Order']");
+submitButton.addEventListener("click", validation);
+
+function validation () {
+  var grandTotal = parseFloat(document.querySelector("#total").value);
+  console.log(grandTotal);
+    console.log(isNaN(grandTotal));
+  var lastName = document.querySelector("input[name='lname']").value;
+  var phone = document.querySelector("input[name='phone']").value;
+  console.log(phone.length);
+  if (deliverTo.checked && street == "") {
+    alert("Please enter a street address for your delivery."); 
+  } else if (deliverTo.checked && city == "") {
+    alert("Please enter a city for your delivery."); 
+  } else if (lastName == "") {
+    alert("Please enter your last name for your order."); 
+  } else if (phone.length != 10) {
+    alert("Please enter a valid phone number."); 
+  } else if (grandTotal == "0" || isNaN(grandTotal) == true) {
+    alert ("Please select at least one menu item.")
+  } else {
+    alert("Thank you for doing business with Jade Delight!")
+    handleSubmit();
+  }
+}
+
+function handleSubmit(event) {
+  const fulfillmentTime = calculateFulfillmentTime(orderType);
+  document.write("Fulfillment time: " + fulfillmentTime);
+}
+
+function calculateFulfillmentTime(orderType) {
+  if (orderType === "delivery") {
+    const now = new Date();
+    const fulfillmentTime = new Date(now.getTime() + 45 * 60 * 1000);
+    return fulfillmentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  } else {
+    const now = new Date();
+    const fulfillmentTime = new Date(now.getTime() + 15 * 60 * 1000);
+    return fulfillmentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+}
+
+</script>
+</form>
+</body>
+</html>
